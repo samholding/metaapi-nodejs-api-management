@@ -1,8 +1,6 @@
 # METAAPI.CLOUD API HELPER Project WITH NODEJS
 
 
-#### 3 Layer architecture
-The idea is to use the principle of separation of concerns to move the business logic away from the node.js API Routes.
 
 #### Follow these command lines:
 1. Opne terminal 
