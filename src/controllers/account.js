@@ -7,68 +7,57 @@ const querystring = require('querystring');
 const MetaApi     = require('metaapi.cloud-sdk').default;
 
 
+require("babel-core/register");
+require("babel-polyfill");
+
+
+
+
+
 class accountController {
 
-    get(request, response) {
+    async get( request, response ) {
         
         const { query }   = url.parse(request.url);
         const queryParams = querystring.parse(query);
-      
-
 
         if(queryParams.token == null || queryParams.accountId == null ){
             response.json("not account found 404 !");
         }
-
-
-        
-        // get account information 
-        getAccountInformation( queryParams.token , queryParams.accountId , response ); 
-        
-
-
-    }
-
-
-
-
-
-    async  getAccountInformation( token , accountId , response ) {
-
-        const api = new MetaApi(token);
+       
+        const api = new MetaApi(queryParams.token);
 
         try {
-            const account = await api.metatraderAccountApi.getAccount(accountId);
+            const account = await api.metatraderAccountApi.getAccount(queryParams.accountId);
             const initialState = account.state;
             const deployedStates = ['DEPLOYING', 'DEPLOYED'];
+
+
+            if(!deployedStates.includes(initialState)) {
+                await account.deploy();
+            }
+                
+            console.log('Waiting for API server to connect to broker (may take couple of minutes)');
+            await account.waitConnected();
         
-            response.json(token);
-
-            // if(!deployedStates.includes(initialState)) {
-            //     await account.deploy();
-            // }
-            
-            // console.log('Waiting for API server to connect to broker (may take couple of minutes)');
-            // await account.waitConnected();
+            // connect to MetaApi API
+            let connection = account.getRPCConnection();
+            await connection.connect();
         
-            // // connect to MetaApi API
-            // let connection = account.getRPCConnection();
-            // await connection.connect();
-        
-            // // wait until terminal state synchronized to the local state
-            // console.log('Waiting for SDK to synchronize to terminal state (may take some time depending on your history size)');
-            // await connection.waitSynchronized();
+            // wait until terminal state synchronized to the local state
+            console.log('Waiting for SDK to synchronize to terminal state (may take some time depending on your history size)');
+            await connection.waitSynchronized();
 
 
 
-            // const data = {
-            //     "server time"               : await connection.getServerTime() ,
-            //     "account information"       : await connection.getAccountInformation(),
-            //     "positions"                 : await connection.getPositions(),
-            //     "open_orders"               : await connection.getOrders(),
-            //     "history_orders_by_ticket"  : await connection.getOrders(),
-            //     "history_orders_by_position": await connection.getOrders(),
-            // };
+            const data = {
+                "server time"               : await connection.getServerTime() ,
+                "account information"       : await connection.getAccountInformation(),
+                "positions"                 : await connection.getPositions(),
+                "open_orders"               : await connection.getOrders(),
+                "history_orders_by_ticket"  : await connection.getOrders(),
+                "history_orders_by_position": await connection.getOrders(),
+            };
             
 
             response.json(data);
@@ -76,14 +65,12 @@ class accountController {
         } catch (err) {
             console.error(err);
         }
+
     }
 
-
-
-    
-    
-
 }
+
+
 
 export default new accountController();
 
