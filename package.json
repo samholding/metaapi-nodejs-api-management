@@ -1,0 +1,24 @@
+{
+  "name": "nodejs-structure",
+  "version": "1.0.0",
+  "description": "node.js structure with express.js for simple backend application",
+  "main": "./src/app.js",
+  "scripts": {
+    "start": "nodemon transpiled/index.js --port=3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Majid Ashraf",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "metaapi.cloud-sdk": "^20.11.5",
+    "mongoose": "^5.9.24",
+    "querystring": "^0.2.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^2.0.4"
+  }
+}
