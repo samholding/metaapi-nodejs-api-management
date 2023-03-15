@@ -51,14 +51,22 @@ class accountController {
 
 
             const data = {
-                "server time"               : await connection.getServerTime() ,
-                "account information"       : await connection.getAccountInformation(),
+                "server_time"               : await connection.getServerTime() ,
+                "account_information"       : await connection.getAccountInformation(),
                 "positions"                 : await connection.getPositions(),
                 "open_orders"               : await connection.getOrders(),
                 "history_orders_by_ticket"  : await connection.getOrders(),
                 "history_orders_by_position": await connection.getOrders(),
             };
             
+
+
+            if(!deployedStates.includes(initialState)) {
+                // undeploy account if it was undeployed
+                console.log('Undeploying account');
+                await connection.close();
+                await account.undeploy();
+            }
 
             response.json(data);
 
@@ -120,10 +128,5 @@ export default new accountController();
     //     console.log('Trade failed with result code ' + err.stringCode);
     //   }
   
-    //   if(!deployedStates.includes(initialState)) {
-    //     // undeploy account if it was undeployed
-    //     console.log('Undeploying account');
-    //     await connection.close();
-    //     await account.undeploy();
-    //   }
+
     
