@@ -60,7 +60,7 @@ class accountController {
             let trades = await metaStats.getAccountTrades(accountId, '0000-01-01 00:00:00.000', '9999-01-01 00:00:00.000');
             // console.log(trades.slice(-5));//-> {_id: ..., gain: ..., ...}
             
-            let openTrades = await metaStats.getAccountOpenTrades(accountId);
+            // let openTrades = await metaStats.getAccountOpenTrades(accountId);
             // console.log(openTrades);//-> {_id: ..., gain: ..., ...}
 
 
@@ -71,7 +71,7 @@ class accountController {
                 // "positions"                 : await connection.getPositions(),
                 "metrics"                   : metrics,
                 "trades"                    : trades,
-                "open_trades"               : openTrades,
+                // "open_trades"               : openTrades,
                 // "open_orders"               : await connection.getOrders(),
                 // "history_orders_by_ticket"  : await connection.getOrders(),
                 // "history_orders_by_position": await connection.getOrders(),
