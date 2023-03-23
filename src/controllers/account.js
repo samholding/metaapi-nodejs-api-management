@@ -26,9 +26,13 @@ class accountController {
         }
        
         const api = new MetaApi(queryParams.token);
+        const metaStats = new MetaStats(queryParams.token);
+
 
         try {
             const account = await api.metatraderAccountApi.getAccount(queryParams.accountId);
+
+
             const initialState = account.state;
             const deployedStates = ['DEPLOYING', 'DEPLOYED'];
 
@@ -50,15 +54,28 @@ class accountController {
 
 
 
-            const data = {
-                "server_time"               : await connection.getServerTime() ,
-                "account_information"       : await connection.getAccountInformation(),
-                "positions"                 : await connection.getPositions(),
-                "open_orders"               : await connection.getOrders(),
-                "history_orders_by_ticket"  : await connection.getOrders(),
-                "history_orders_by_position": await connection.getOrders(),
-            };
+            let metrics = await metaStats.getMetrics(accountId);
+            // console.log(metrics);//-> {trades: ..., balance: ..., ...}
             
+            let trades = await metaStats.getAccountTrades(accountId, '0000-01-01 00:00:00.000', '9999-01-01 00:00:00.000');
+            // console.log(trades.slice(-5));//-> {_id: ..., gain: ..., ...}
+            
+            let openTrades = await metaStats.getAccountOpenTrades(accountId);
+            // console.log(openTrades);//-> {_id: ..., gain: ..., ...}
+
+
+
+            const data = {
+                // "server_time"               : await connection.getServerTime() ,
+                "account_information"       : await connection.getAccountInformation(),
+                // "positions"                 : await connection.getPositions(),
+                "metrics"                   : metrics,
+                "trades"                    : trades,
+                "open_trades"               : openTrades,
+                // "open_orders"               : await connection.getOrders(),
+                // "history_orders_by_ticket"  : await connection.getOrders(),
+                // "history_orders_by_position": await connection.getOrders(),
+            };
 
 
             if(!deployedStates.includes(initialState)) {
