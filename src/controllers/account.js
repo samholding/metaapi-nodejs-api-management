@@ -4,8 +4,9 @@ import { accountService } from '../services';
 
 const url         = require('url');
 const querystring = require('querystring');
-const MetaApi     = require('metaapi.cloud-sdk').default;
 
+const MetaApi     = require('metaapi.cloud-sdk').default;
+const MetaStats   = require('metaapi.cloud-sdk').MetaStats;
 
 require("babel-core/register");
 require("babel-polyfill");
@@ -25,51 +26,52 @@ class accountController {
             response.json("not account found 404 !");
         }
        
+        console.log( "account ID : " +  queryParams.accountId)
+        console.log(queryParams.token)
+
         const api = new MetaApi(queryParams.token);
-        const metaStats = new MetaStats(queryParams.token);
+        const metaStatsApi = new MetaStats(queryParams.token);
 
 
         try {
-            const account = await api.metatraderAccountApi.getAccount(queryParams.accountId);
+            let account = await api.metatraderAccountApi.getAccount(queryParams.accountId);
 
 
-            const initialState = account.state;
-            const deployedStates = ['DEPLOYING', 'DEPLOYED'];
+            let initialState   = account.state;
+            let deployedStates = ['DEPLOYING', 'DEPLOYED'];
 
 
-            if(!deployedStates.includes(initialState)) {
+            if (account.state !== 'DEPLOYED') {
                 await account.deploy();
+            } else {
+                console.log('Account already deployed');
             }
+
                 
             console.log('Waiting for API server to connect to broker (may take couple of minutes)');
-            await account.waitConnected();
-        
-            // connect to MetaApi API
-            let connection = account.getRPCConnection();
-            await connection.connect();
-        
-            // wait until terminal state synchronized to the local state
-            console.log('Waiting for SDK to synchronize to terminal state (may take some time depending on your history size)');
-            await connection.waitSynchronized();
+            if (account.connectionStatus !== 'CONNECTED') {
+                await account.waitConnected();
+            }
 
+            // // connect to MetaApi API
+            // let connection = account.getRPCConnection();
+            // await connection.connect();
+                    
 
-
-            let metrics = await metaStats.getMetrics(accountId);
+            let metrics = await metaStatsApi.getMetrics(queryParams.accountId);
             console.log(metrics);//-> {trades: ..., balance: ..., ...}
             
-            let trades = await metaStats.getAccountTrades(accountId, '0000-01-01 00:00:00.000', '9999-01-01 00:00:00.000');
+            let trades = await metaStatsApi.getAccountTrades(queryParams.accountId , '0000-01-01 00:00:00.000', '9999-01-01 00:00:00.000');
             console.log(trades.slice(-5));//-> {_id: ..., gain: ..., ...}
             
             // let openTrades = await metaStats.getAccountOpenTrades(accountId);
             // console.log(openTrades);//-> {_id: ..., gain: ..., ...}
 
 
-
             const data = {
                 "account_information"       : await connection.getAccountInformation(),
                 "metrics"                   : metrics,
                 "trades"                    : trades,
-
             };
 
             // "server_time"               : await connection.getServerTime() ,
@@ -80,12 +82,12 @@ class accountController {
             // "history_orders_by_position": await connection.getOrders(),
 
 
-            if(!deployedStates.includes(initialState)) {
-                // undeploy account if it was undeployed
-                console.log('Undeploying account');
-                await connection.close();
-                await account.undeploy();
-            }
+            // if(!deployedStates.includes(initialState)) {
+            //     // undeploy account if it was undeployed
+            //     console.log('Undeploying account');
+            //     await connection.close();
+            //     await account.undeploy();
+            // }
 
             response.json(data);
 
