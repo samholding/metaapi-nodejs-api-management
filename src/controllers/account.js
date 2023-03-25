@@ -69,7 +69,7 @@ class accountController {
 
 
             const data = {
-                "account_information"       : await connection.getAccountInformation(),
+                // "account_information"       : await connection.getAccountInformation(),
                 "metrics"                   : metrics,
                 "trades"                    : trades,
             };
